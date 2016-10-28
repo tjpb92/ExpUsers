@@ -44,8 +44,9 @@ import org.bson.Document;
  */
 public class ExpUsers {
 
+    private final static String path = "c:\\temp";
+    
     private final static String filename = "users.xlsx";
-//    private static Object XHSSFCellStyle;
 
     private final static String HOST = "192.168.0.17";
     private final static int PORT = 27017;
@@ -60,48 +61,26 @@ public class ExpUsers {
         XSSFSheet feuille;
         XSSFRow titre;
         XSSFCell cell;
-        XSSFRow ligne = null;
-        XSSFCellStyle cellStyle = null;
+        XSSFRow ligne;
+        XSSFCellStyle cellStyle;
+        XSSFCellStyle titleStyle;
         ObjectMapper objectMapper;
+        User user;
         MongoDatabase mongoDatabase;
-        User user1;
-        XSSFCellStyle titleStyle = null;
-        //Get current Date and Time
-        Date now = new Date(System.currentTimeMillis());
-        DateFormat dateFormat = new SimpleDateFormat("dd-MM-yy");
-        MongoClient MyMongoClient = new MongoClient(HOST, PORT);
+        MongoClient MyMongoClient;
+
         objectMapper = new ObjectMapper();
 
-//        System.out.println("Liste des bases de données :");
-//        for (String MyDbNname : MyMongoClient.listDatabaseNames()) {
-//            System.out.println("  " + MyDbNname);
-//            mongoDatabase = MyMongoClient.getDatabase(MyDbNname);
-//            System.out.println("Liste des collections de " + MyDbNname + " :");
-//            for (String MyCollectionName : mongoDatabase.listCollectionNames()) {
-//                System.out.println("  " + MyCollectionName);
-//            }
-//        }
-
+        MyMongoClient = new MongoClient(HOST, PORT);
         mongoDatabase = MyMongoClient.getDatabase("extranet");
+
         MongoCollection<Document> MyCollection = mongoDatabase.getCollection("users");
         System.out.println(MyCollection.count() + " utilisateurs");
-
-//        Document MyDocument = MyCollection.find().first();
-//        System.out.println(MyDocument.toJson());
-//        try {
-//            user1 = objectMapper.readValue(MyDocument.toJson(), User.class);
-//            System.out.println(user1);
-//        } catch (IOException ex) {
-//            Logger.getLogger(ExpUsers.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 
 //      Création d'un classeur Excel
         classeur = new XSSFWorkbook();
         feuille = classeur.createSheet("Utilisateurs");
-        titre = feuille.createRow(0);
-//        cell = titre.createCell((short) 0);
-//        cell.setCellValue("Nom");
-
+        
         // Style de cellule avec bordure noire
         cellStyle = classeur.createCellStyle();
         cellStyle.setBorderBottom(BorderStyle.THIN);
@@ -119,7 +98,8 @@ public class ExpUsers {
         titleStyle.setFillPattern(FillPatternType.LESS_DOTS);
 //        titleStyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
 
-        // Intialisitation du titre
+        // Ligne de titre
+        titre = feuille.createRow(0);
         cell = titre.createCell((short) 0);
         cell.setCellStyle(titleStyle);
         cell.setCellValue("Nom");
@@ -139,78 +119,57 @@ public class ExpUsers {
         cell.setCellStyle(titleStyle);
         cell.setCellValue("Société");
 
-//        MongoCursor<User> cursor = MyCollection.find(User.class).iterator();
-//        try {
-//            while (cursor.hasNext()) {
-//                System.out.println(cursor.next());
-//            }
-//        } finally {
-//            cursor.close();
-//        }
-        Document user;
-        Document company;
+        // Lit les ustilisateurs classés par nom et prénom
         MongoCursor<Document> MyCursor
                 = MyCollection.find().sort(new BasicDBObject("lastName", 1).append("firstName", 1)).iterator();
         int n = 0;
         try {
             while (MyCursor.hasNext()) {
-                user1 = objectMapper.readValue(MyCursor.next().toJson(), User.class);
-                System.out.println("lastName:" + user1.getLastName()
-                        + ", firstName:" + user1.getFirstName()
-                        + //                        ", userType:" + user1.getUserType() + 
-                        ", status:" + user1.getIsActive()
-                        + //                        ", company:" + user1.getCompany() + 
-                        ", login:" + user1.getLogin()
-                        + ", class:" + user1.getClass().getSimpleName());
-//                user = MyCursor.next();
-//                company = user.get(company);
-//                System.out.println("lastName:" + user.getString("lastName") + 
-//                        ", firstName:" + user.getString("firstName") +
-////                        ", userType:" + user.getString("userType") + 
-////                        ", status:" + user.getBoolean("isActive") +
-////                        ", company:" + (Document) (user.get("company")).getString("label")) + 
-//                        ", login:" + user.getString("login"));
-//                System.out.println(MyCursor.next().toJson());
+                user = objectMapper.readValue(MyCursor.next().toJson(), User.class);
+                System.out.println( n 
+                        + " lastName:" + user.getLastName()
+                        + ", firstName:" + user.getFirstName()
+                        + ", status:" + user.getIsActive()
+                        + ", login:" + user.getLogin()
+                        + ", class:" + user.getClass().getSimpleName());
                 n++;
                 ligne = feuille.createRow(n);
 
                 cell = ligne.createCell(0);
-                cell.setCellValue(user1.getLastName());
+                cell.setCellValue(user.getLastName());
                 cell.setCellStyle(cellStyle);
 
                 cell = ligne.createCell(1);
-                cell.setCellValue(user1.getFirstName());
+                cell.setCellValue(user.getFirstName());
                 cell.setCellStyle(cellStyle);
 
-//                if (user1 instanceof Executive || user1 instanceof CallCenterUser 
-//                        || user1 instanceof ClientAccountManager || user1 instanceof SuperUser) {
-                if (user1 instanceof Executive) {
+                if (user instanceof Executive) {
                     cell = ligne.createCell(2);
-                    cell.setCellValue(((Executive) user1).getClass().getSimpleName());
+                    cell.setCellValue(((Executive) user).getClass().getSimpleName());
                     cell.setCellStyle(cellStyle);
 
                     cell = ligne.createCell(5);
-                    cell.setCellValue(((Executive) user1).getCompany().getLabel());
+                    cell.setCellValue(((Executive) user).getCompany().getLabel());
                     cell.setCellStyle(cellStyle);
-                } else if (user1 instanceof CallCenterUser) {
+                } else if (user instanceof CallCenterUser) {
                     cell = ligne.createCell(2);
-                    cell.setCellValue(((CallCenterUser) user1).getClass().getSimpleName());
+                    cell.setCellValue(((CallCenterUser) user).getClass().getSimpleName());
                     cell.setCellStyle(cellStyle);
 
                     cell = ligne.createCell(5);
-                    cell.setCellValue(((CallCenterUser) user1).getCompany().getLabel());
+                    cell.setCellValue(((CallCenterUser) user).getCompany().getLabel());
                     cell.setCellStyle(cellStyle);
-                } else if (user1 instanceof ClientAccountManager) {
+                } else if (user instanceof ClientAccountManager) {
                     cell = ligne.createCell(2);
-                    cell.setCellValue(((ClientAccountManager) user1).getClass().getSimpleName());
+                    cell.setCellValue(((ClientAccountManager) user).getClass().getSimpleName());
                     cell.setCellStyle(cellStyle);
 
                     cell = ligne.createCell(5);
-                    cell.setCellValue(((ClientAccountManager) user1).getCompany().getLabel());
+                    cell.setCellValue(((ClientAccountManager) user).getCompany().getLabel());
                     cell.setCellStyle(cellStyle);
-                } else if (user1 instanceof SuperUser) {
+                } else if (user instanceof SuperUser) {
                     cell = ligne.createCell(2);
-                    cell.setCellValue(((SuperUser) user1).getClass().getSimpleName());
+                    cell.setCellValue(((SuperUser) user).getClass().getSimpleName());
                     cell.setCellStyle(cellStyle);
 
                     cell = ligne.createCell(5);
@@ -218,11 +177,11 @@ public class ExpUsers {
                 }
 
                 cell = ligne.createCell(3);
-                cell.setCellValue(user1.getLogin());
+                cell.setCellValue(user.getLogin());
                 cell.setCellStyle(cellStyle);
 
                 cell = ligne.createCell(4);
-                if (user1.getIsActive()) {
+                if (user.getIsActive()) {
                     cell.setCellValue("Actif");
                 } else {
                     cell.setCellValue("Inactif");
@@ -242,7 +201,6 @@ public class ExpUsers {
             feuille.getPrintSetup().setLandscape(true);
 
             // Ajustement à une page en largeur
-//            feuille.setAutobreaks(false);
             feuille.setFitToPage(true);
             feuille.getPrintSetup().setFitWidth((short) 1);
             feuille.getPrintSetup().setFitHeight((short) 0);
@@ -254,10 +212,7 @@ public class ExpUsers {
             
             Footer footer = feuille.getFooter();
             footer.setLeft("Documentation confidentielle Anstel");
-//            footer.setCenter("Page " + HeaderFooter.page() + "/"
-//                    + HeaderFooter.numPages());
             footer.setCenter("Page &P / &N");
-//            footer.setRight(dateFormat.format(now));
             footer.setRight("&D");
 
             // Ligne à répéter en haut de page
@@ -269,21 +224,12 @@ public class ExpUsers {
             MyCursor.close();
         }
 
-//         Initialisation tableau
-//        for (int i = 0; i < 10; i++) {
-//            ligne = feuille.createRow(i + 1);
-//            for (int j = 0; j < 5; j++) {
-//                cell = ligne.createCell((short) j);
-//                cell.setCellValue(i * j);
-//                cell.setCellStyle(blackMediumBorder);
-//            }
-//        }
         // Enregistrement du classeur dans un fichier
         try {
-            out = new FileOutputStream(new File(filename));
+            out = new FileOutputStream(new File(path + "\\" + filename));
             classeur.write(out);
             out.close();
-            System.out.println("Fichier Excel " + filename + " créé");
+            System.out.println("Fichier Excel " + filename + " créé dans " + path);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(ExpUsers.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

@@ -3,11 +3,12 @@ Programme Java permettant d'extraire les utilisateurs d'un site Web dans un fich
 
 ##Utilisation:
 ```
-java ExpUsers [-dbserver db] [-o fichier.xlsx] [-d] [-t] 
+java ExpUsers [-dbserver db] [-p chemin vers fichier] [-o fichier] [-d] [-t] 
 ```
 où :
 * ```-dbserver db``` est la référence à la base de données, par défaut désigne la base de données de développement. Voir fichier *myDatabases.prop* (optionnel).
-* ```-o fichier.xlsx``` est le nom du fichier Excel qui recevra les utilisateurs. Amorcé à *users.xlsx* par défaut (paramètre optionnel).
+* ```-p chemin vers fichier``` est le chemin vers le fichier Excel. Amorcé à vide par défaut (paramètre optionnel).
+* ```-o fichier``` est le nom du fichier Excel qui recevra les utilisateurs. Amorcé à *users.xlsx* par défaut (paramètre optionnel).
 * ```-d``` le programme s'exécute en mode débug, il est beaucoup plus verbeux. Désactivé par défaut (paramètre optionnel).
 * ```-t``` le programme s'exécute en mode test, les transcations en base de données ne sont pas faites. Désactivé par défaut (paramètre optionnel).
 
