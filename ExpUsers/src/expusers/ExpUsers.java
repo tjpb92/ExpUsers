@@ -3,6 +3,7 @@ package expusers;
 import bkgpi2a.CallCenterUser;
 import bkgpi2a.ClientAccountManager;
 import bkgpi2a.Executive;
+import bkgpi2a.PatrimonyManager;
 import bkgpi2a.SuperUser;
 import bkgpi2a.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,12 +16,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.poi.hssf.usermodel.HeaderFooter;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Footer;
@@ -40,7 +37,7 @@ import org.bson.Document;
  * Programme pour exporter les utilisateurs d'un site Web dans un fichier Excel
  *
  * @author Thierry Baribaud
- * @version Octobre 2016
+ * @version 0.09
  */
 public class ExpUsers {
 
@@ -48,7 +45,7 @@ public class ExpUsers {
     
     private final static String filename = "users.xlsx";
 
-    private final static String HOST = "192.168.0.17";
+    private final static String HOST = "10.65.62.133";
     private final static int PORT = 27017;
 
     /**
@@ -72,7 +69,7 @@ public class ExpUsers {
         objectMapper = new ObjectMapper();
 
         MyMongoClient = new MongoClient(HOST, PORT);
-        mongoDatabase = MyMongoClient.getDatabase("extranet");
+        mongoDatabase = MyMongoClient.getDatabase("extranet-dev");
 
         MongoCollection<Document> MyCollection = mongoDatabase.getCollection("users");
         System.out.println(MyCollection.count() + " utilisateurs");
@@ -150,6 +147,14 @@ public class ExpUsers {
 
                     cell = ligne.createCell(5);
                     cell.setCellValue(((Executive) user).getCompany().getLabel());
+                    cell.setCellStyle(cellStyle);
+                } else if (user instanceof PatrimonyManager) {
+                    cell = ligne.createCell(2);
+                    cell.setCellValue(((PatrimonyManager) user).getClass().getSimpleName());
+                    cell.setCellStyle(cellStyle);
+
+                    cell = ligne.createCell(5);
+                    cell.setCellValue(((PatrimonyManager) user).getCompany().getLabel());
                     cell.setCellStyle(cellStyle);
                 } else if (user instanceof CallCenterUser) {
                     cell = ligne.createCell(2);
